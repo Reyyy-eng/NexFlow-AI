@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NexFlow | Smart Fuel Station</title>
+
+    <style>
+        .allocation {
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.allocation::-webkit-scrollbar {
+    width: 6px;
+}
+
+.allocation::-webkit-scrollbar-thumb {
+    background: #38bdf8;
+    border-radius: 10px;
+}
+
+.allocation::-webkit-scrollbar-track {
+    background: transparent;
+}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0b1120;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 94%;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        header {
+            padding: 28px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand h1 {
+            font-size: 30px;
+            letter-spacing: 1px;
+        }
+
+        .brand span {
+            color: #38bdf8;
+        }
+
+        .brand p {
+            color: #94a3b8;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            padding: 10px 16px;
+            border-radius: 20px;
+            color: #86efac;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        .dashboard-title {
+            padding: 30px 0 20px;
+        }
+
+        .dashboard-title h2 {
+            font-size: 25px;
+        }
+
+        .dashboard-title p {
+            color: #94a3b8;
+            margin-top: 7px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .card {
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-size: 30px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .stat-small {
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .card-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .card-title h3 {
+            font-size: 18px;
+        }
+
+        .live {
+            color: #22c55e;
+            font-size: 12px;
+        }
+
+        .station {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            min-height: 390px;
+            padding: 25px;
+            position: relative;
+        }
+
+        .station-road {
+            height: 100%;
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 25px;
+        }
+
+        .pumps {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 15px;
+        }
+        #pump-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    grid-column: 1 / -1;
+}
+
+        .pump {
+            background: #020617;
+            border: 2px solid #22c55e;
+            border-radius: 12px;
+            min-height: 105px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .pump.busy {
+            border-color: #ef4444;
+        }
+
+        .pump.warning {
+            border-color: #eab308;
+        }
+
+        .pump-number {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .pump-status {
+            font-size: 12px;
+            margin-top: 8px;
+            color: #86efac;
+        }
+
+        .pump.busy .pump-status {
+            color: #fca5a5;
+        }
+
+        .pump.warning .pump-status {
+            color: #fde047;
+        }
+
+        .car {
+            font-size: 27px;
+            margin-top: 8px;
+        }
+
+        .entrance,
+        .exit {
+            position: absolute;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .entrance {
+            bottom: 10px;
+            left: 20px;
+        }
+
+        .exit {
+            top: 10px;
+            right: 20px;
+        }
+
+        .prediction {
+            border-left: 4px solid #eab308;
+            background: #1c1917;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+
+        .prediction.normal {
+            border-left-color: #22c55e;
+            background: #052e16;
+        }
+
+        .prediction.medium {
+            border-left-color: #eab308;
+            background: #1c1917;
+        }
+
+        .prediction.high {
+            border-left-color: #ef4444;
+            background: #2b1111;
+        }
+
+        .prediction h4 {
+            color: #fde047;
+            margin-bottom: 8px;
+        }
+
+        .prediction.normal h4 {
+            color: #86efac;
+        }
+
+        .prediction.high h4 {
+            color: #fca5a5;
+        }
+
+        .prediction strong {
+            font-size: 24px;
+        }
+
+        .prediction-text {
+            color: #cbd5e1;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .prediction-recommendation {
+            margin-top: 12px;
+            color: #94a3b8;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .allocation {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .allocation-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(15, 23, 42, 0.75);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    border: 1px solid rgba(148, 163, 184, 0.08);
+    transition: 0.2s ease;
+}
+
+.allocation-row:hover {
+    background: rgba(30, 41, 59, 0.95);
+    transform: translateX(-2px);
+}
+
+        .pump-tag {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        .simulation {
+            margin-top: 18px;
+        }
+
+        .simulation-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .simulation-controls label {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        input {
+            width: 90px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #020617;
+            color: white;
+            font-size: 16px;
+        }
+
+        button {
+            border: none;
+            background: #38bdf8;
+            color: #020617;
+            padding: 13px 22px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        .simulation-status {
+            margin-top: 18px;
+            color: #94a3b8;
+            display: none;
+        }
+
+        .results {
+            margin-top: 18px;
+            display: none;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .result-box {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .result-box span {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .result-box strong {
+            display: block;
+            font-size: 28px;
+            margin-top: 8px;
+        }
+
+        .improvement {
+            color: #4ade80;
+        }
+
+        footer {
+            text-align: center;
+            color: #475569;
+            padding: 35px 0;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pumps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        /* NexFlow UI Polish */
+.allocation {
+    max-height: 430px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.allocation::-webkit-scrollbar {
+    width: 6px;
+}
+
+.allocation::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+}
+
+.allocation::-webkit-scrollbar-thumb {
+    background: #22d3ee;
+    border-radius: 10px;
+}
+
+.allocation-row {
+    transition: all 0.2s ease;
+}
+
+.allocation-row:hover {
+    transform: translateX(-3px);
+    background: rgba(34,211,238,0.10);
+}
+
+.pump-tag {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+button {
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(34,211,238,0.20);
+}
+
+button:active {
+    transform: translateY(0);
+}
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="container header-content">
+
+            <div class="brand">
+                <h1>Nex<span>Flow</span></h1>
+                <p>Predict. Optimize. Flow.</p>
+            </div>
+
+            <div class="system-status">
+                <div class="status-dot"></div>
+                SYSTEM ONLINE
+            </div>
+
+        </div>
+    </header>
+
+    <main class="container">
+
+        <div class="dashboard-title">
+            <h2>Smart Station Dashboard</h2>
+            <p>Real-time station monitoring and AI-powered traffic optimization.</p>
+        </div>
+
+        <section class="stats">
+
+            <div class="card">
+                <div class="stat-label">Vehicles Inside</div>
+                <div class="stat-value" id="vehicles">12</div>
+                <div class="stat-small">Currently in station</div>
+            </div>
+
+            <div class="card">
+    <div class="stat-label">Pumps Active</div>
+    <div class="stat-value" id="pumpsActive">6 / 8</div>
+    <div class="stat-small" id="pumpsAvailable">2 pumps available</div>
+</div>
+
+            <div class="card">
+                <div class="stat-label">Average Wait</div>
+                <div class="stat-value" id="avgWait">4.2 min</div>
+                <div class="stat-small">Current average</div>
+            </div>
+
+            <div class="card">
+                <div class="stat-label">Station Status</div>
+                <div class="stat-value" id="stationStatus" style="color:#4ade80;">
+                    NORMAL
+                </div>
+                <div class="stat-small">AI monitored</div>
+            </div>
+
+        </section>
+
+        <section class="main-grid">
+
+            <div class="card">
+
+                <div class="card-title">
+                    <h3>Digital Twin</h3>
+                    <span class="live">● LIVE</span>
+                </div>
+
+                <div class="station">
+
+                    <div class="exit">EXIT →</div>
+
+                    <div class="station-road">
+
+                        <div class="pumps">
+
+                           
+    <div class="station-row" id="pump-grid">
+
+        <div class="pump" id="pump-P01">
+            <div class="pump-number">Pump 01</div>
+            <div class="pump-status">AVAILABLE</div>
+            <div class="car">🚗</div>
+        </div>
+
+        <div class="pump busy" id="pump-P02">
+            <div class="pump-number">Pump 02</div>
+            <div class="pump-status">BUSY</div>
+            <div class="car">🚙</div>
+        </div>
+
+        <div class="pump" id="pump-P03">
+            <div class="pump-number">Pump 03</div>
+            <div class="pump-status">AVAILABLE</div>
+            <div class="car">🚗</div>
+        </div>
+
+        <div class="pump warning" id="pump-P04">
+            <div class="pump-number">Pump 04</div>
+            <div class="pump-status">CONGESTION</div>
+            <div class="car">🚕</div>
+        </div>
+
+        <div class="pump busy" id="pump-P05">
+            <div class="pump-number">Pump 05</div>
+            <div class="pump-status">BUSY</div>
+            <div class="car">🚗</div>
+        </div>
+
+        <div class="pump" id="pump-P06">
+            <div class="pump-number">Pump 06</div>
+            <div class="pump-status">AVAILABLE</div>
+            <div class="car">🚗</div>
+        </div>
+
+        <div class="pump busy" id="pump-P07">
+            <div class="pump-number">Pump 07</div>
+            <div class="pump-status">BUSY</div>
+            <div class="car">🚙</div>
+        </div>
+
+        <div class="pump busy" id="pump-P08">
+            <div class="pump-number">Pump 08</div>
+            <div class="pump-status">BUSY</div>
+            <div class="car">🚗</div>
+        </div>
+
+    </div>
+</div>
+
+<div class="entrance">
+    ← ENTRANCE
+</div>
+
+                    </div>
+
+                    <div class="entrance">← ENTRANCE</div>
+
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-title">
+                    <h3>AI Prediction</h3>
+                    <span class="live">● AI LIVE</span>
+                </div>
+
+                <div class="prediction medium" id="predictionBox">
+
+                    <h4 id="predictionTitle">
+                        ⚠ ANALYZING TRAFFIC
+                    </h4>
+
+                    <p class="prediction-text" id="predictionText">
+                        Run a simulation to receive an AI traffic prediction.
+                    </p>
+
+                    <strong id="predictionLevel">
+                        Waiting...
+                    </strong>
+
+                    <p class="prediction-recommendation" id="predictionRecommendation">
+                        AI recommendation will appear here.
+                    </p>
+
+                    <p style="margin-top:8px;color:#94a3b8;">
+                        Confidence:
+                        <span id="predictionConfidence">--</span>
+                    </p>
+
+                </div>
+
+                <h3 style="font-size:16px;margin-bottom:12px;">
+                    Smart Allocation
+                </h3>
+
+                <div class="allocation">
+                    <div id="allocation-list"></div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="card simulation">
+
+            <div class="card-title">
+                <h3>Traffic Simulation</h3>
+            </div>
+
+            <div class="simulation-controls">
+
+                <label>
+                    Incoming vehicles:
+                </label>
+
+                <input
+                    type="number"
+                    id="incomingVehicles"
+                    value="20"
+                    min="1"
+                    max="100"
+                >
+
+                <button onclick="runSimulation()">
+                    SIMULATE
+                </button>
+
+            </div>
+
+            <div
+                class="simulation-status"
+                id="simulationStatus">
+                Running AI simulation...
+            </div>
+
+        </section>
+
+        <section class="card results" id="results">
+
+            <div class="card-title">
+                <h3>Simulation Results</h3>
+                <span class="live">AI OPTIMIZED</span>
+            </div>
+
+            <div class="results-grid">
+
+                <div class="result-box">
+                    <span>Waiting Time Before</span>
+                    <strong id="before">--</strong>
+                </div>
+
+                <div class="result-box">
+                    <span>Waiting Time After</span>
+                    <strong id="after">--</strong>
+                </div>
+
+                <div class="result-box">
+                    <span>Improvement</span>
+                    <strong
+                        class="improvement"
+                        id="improvement">
+                        --
+                    </strong>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        NexFlow ©️ 2026 — Smart Fuel Station
+    </footer>
+
+    <script>
+
+        async function runSimulation() {
+
+            const vehiclesInput =
+                document.getElementById("incomingVehicles");
+
+            const status =
+                document.getElementById("simulationStatus");
+
+            const results =
+                document.getElementById("results");
+
+            const vehicles =
+                Number(vehiclesInput.value);
+
+            if (!vehicles || vehicles < 1) {
+                status.style.display = "block";
+                status.innerHTML =
+                    "⚠ Please enter at least 1 vehicle.";
+                return;
+            }
+
+            try {
+
+                status.style.display = "block";
+                status.innerHTML =
+                    "⏳ NexFlow AI is analyzing traffic...";
+
+                results.style.display = "none";
+
+                const response = await fetch("/api/predict", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        cars: vehicles,
+                        speed: 60
+                    })
+
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        "API request failed: " + response.status
+                    );
+                }
+
+                const result = await response.json();
+
+                console.log("API STATUS:", response.status);
+                console.log("API RESPONSE:", result);
+
+                updatePrediction(result);
+
+updateAllocation(result);
+updateDigitalTwin(result);
+updatePumpStats(result);
+updateResults(result);
+
+               
+                
+                
+document.getElementById("vehicles").textContent = vehicles;
+document.getElementById("avgWait").textContent = result.after + " min";
+
+const activePumps = new Set(
+    result.allocation.map(item => item.pump)
+).size;
+
+document.getElementById("pumpsActive").textContent =
+    activePumps + " / 8";
+
+document.getElementById("pumpsAvailable").textContent =
+    (8 - activePumps) + " pumps available";
+
+updateStationStatus(result);
+
+                
+
+                results.style.display = "block";
+
+                status.innerHTML =
+                    "✅ AI simulation completed successfully.";
+
+            } catch (error) {
+
+                console.error("API ERROR:", error);
+
+                status.style.display = "block";
+
+                status.innerHTML =
+                    "❌ API connection failed — check Console.";
+
+                results.style.display = "none";
+            }
+        }
+
+
+        function updatePrediction(result) {
+
+            const box =
+                document.getElementById("predictionBox");
+
+            const title =
+                document.getElementById("predictionTitle");
+
+            const text =
+                document.getElementById("predictionText");
+
+            const level =
+                document.getElementById("predictionLevel");
+
+            const recommendation =
+                document.getElementById(
+                    "predictionRecommendation"
+                );
+
+            const confidence =
+                document.getElementById(
+                    "predictionConfidence"
+                );
+
+            box.classList.remove(
+                "normal",
+                "medium",
+                "high"
+            );
+
+            if (result.traffic === "مرتفع") {
+
+                box.classList.add("high");
+
+                title.textContent =
+                    "🔴 HIGH CONGESTION PREDICTED";
+
+                text.textContent =
+                    "AI predicts a high traffic level.";
+
+                level.textContent =
+                    "High Traffic";
+
+            } else if (result.traffic === "متوسط") {
+
+                box.classList.add("medium");
+
+                title.textContent =
+                    "🟡 MODERATE CONGESTION";
+
+                text.textContent =
+                    "AI predicts a moderate traffic level.";
+
+                level.textContent =
+                    "Moderate Traffic";
+
+            } else {
+
+                box.classList.add("normal");
+
+                title.textContent =
+                    "🟢 TRAFFIC NORMAL";
+
+                text.textContent =
+                    "AI predicts normal traffic conditions.";
+
+                level.textContent =
+                    "Low Traffic";
+            }
+
+            recommendation.textContent =
+                "Recommendation: " +
+                result.recommendation;
+
+            confidence.textContent =
+                result.probability + "%";
+        }
+
+
+        function updateAllocation(result) {
+
+            const allocationList =
+                document.getElementById(
+                    "allocation-list"
+                );
+
+            allocationList.innerHTML = "";
+
+            if (
+                !result.allocation ||
+                result.allocation.length === 0
+            ) {
+
+                allocationList.innerHTML =
+                    "<div class='allocation-row'>" +
+                    "<span>No vehicles</span>" +
+                    "<span class='pump-tag'>--</span>" +
+                    "</div>";
+
+                return;
+            }
+            
+
+            result.allocation.forEach(item => {
+
+                const row =
+                    document.createElement("div");
+
+                row.className =
+                    "allocation-row";
+
+                row.innerHTML = `
+                    <span>${item.vehicle}</span>
+                    <span class="pump-tag">
+                        → ${item.pump}
+                    </span>
+                `;
+
+                allocationList.appendChild(row);
+
+            });
+        }
+
+
+       function updateDigitalTwin(result) {
+    const pumpCounts = {};
+
+    if (result.allocation) {
+        result.allocation.forEach(item => {
+            pumpCounts[item.pump] = (pumpCounts[item.pump] || 0) + 1;
+        });
+    }
+
+    const pumps = document.querySelectorAll(".station .pump");
+
+    pumps.forEach(pump => {
+        const numberElement = pump.querySelector(".pump-number");
+        const statusElement = pump.querySelector(".pump-status");
+        const carElement = pump.querySelector(".car");
+
+        if (!numberElement || !statusElement || !carElement) {
+            return;
+        }
+
+        const match = numberElement.textContent.match(/(\d+)/);
+
+        if (!match) {
+            return;
+        }
+
+        const pumpNumber = "P" + match[1].padStart(2, "0");
+        const count = pumpCounts[pumpNumber] || 0;
+
+        pump.classList.remove("busy", "warning");
+
+        if (count >= 5) {
+            pump.classList.add("warning");
+            statusElement.textContent = "CONGESTION";
+        } else if (count >= 1) {
+            pump.classList.add("busy");
+            statusElement.textContent = "BUSY";
+        } else {
+            statusElement.textContent = "AVAILABLE";
+        }
+
+        carElement.textContent = count > 0 ? "🚗 ×" + count : "🚗";
+    });
+}
+
+  function updatePumpStats(result) {
+    if (!result.allocation) {
+        return;
+    }
+
+    const activePumps = new Set(
+        result.allocation.map(item => item.pump)
+    ).size;
+
+    const totalPumps = document.querySelectorAll(".station .pump").length;
+    const availablePumps = totalPumps - activePumps;
+
+    document.getElementById("pumpsActive").textContent =
+        activePumps + " / " + totalPumps;
+
+    document.getElementById("pumpsAvailable").textContent =
+        availablePumps + " pumps available";
+}  </script>
+
+</body>
+
+</html>
