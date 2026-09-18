@@ -91,22 +91,81 @@ if (runBtn) {
   });
 }
 
-function fetchStationPrediction() {
-  // Update prediction output
+async function fetchStationPrediction() {
   const congProb = document.getElementById('cong-prob');
   const congQueue = document.getElementById('cong-queue');
   const congEta = document.getElementById('cong-eta');
 
-  if (congProb) congProb.textContent = '84%';
-  if (congQueue) congQueue.textContent = '37';
-  if (congEta) congEta.textContent = '4 min';
+  try {
+    const response = await fetch('https://nexflow-ai.onrender.com/api/v1/predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        cars: q + 20,
+        speed: 60
+      })
+    });
 
-  // Surge state metrics update
-  q = 37;
-  util = 89;
-  renderMetrics();
+    if (!response.ok) {
+      throw new Error('API request failed');
+    }
 
-  if (simResult) simResult.style.display = 'block';
+    const result = await response.json();
+
+    // Confidence from AI API
+    if (congProb) {
+      congProb.textContent = result.confidence_score;
+    }
+
+    // Update queue based on simulation
+    q = Math.min(48, q + 20);
+    if (congQueue) {
+      congQueue.textContent = q;
+    }
+
+    // Estimated wait time
+    let eta = 2;
+
+    if (result.traffic_status === 'Heavy Traffic') {
+      eta = 5;
+    } else if (result.traffic_status === 'Moderate Traffic') {
+      eta = 4;
+    }
+
+    if (congEta) {
+      congEta.textContent = `${eta} min`;
+    }
+
+    // Update station metrics
+    util = Math.min(96, util + 15);
+    renderMetrics();
+
+    // Update recommendation text
+    const actionText = document.querySelector('.tag.action')?.parentElement?.nextElementSibling;
+
+    if (actionText) {
+      actionText.textContent = result.suggested_plan;
+    }
+
+    // Show results
+    if (simResult) {
+      simResult.style.display = 'block';
+    }
+
+  } catch (error) {
+    console.error('NexFlow API Error:', error);
+
+    if (simResult) {
+      simResult.style.display = 'block';
+    }
+
+    if (congProb) congProb.textContent = 'API Error';
+    if (congQueue) congQueue.textContent = '--';
+    if (congEta) congEta.textContent = '--';
+  }
+
   if (runBtn) {
     runBtn.disabled = false;
     runBtn.textContent = '+20 vehicles ▸ Run again';
