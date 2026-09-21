@@ -1002,6 +1002,35 @@ updateStationStatus(result);
     if (!result.allocation) {
         return;
     }
+      function updateResults(result) {
+    document.getElementById("before").textContent =
+        result.before ?? "--";
+
+    document.getElementById("after").textContent =
+        result.after ?? "--";
+
+    document.getElementById("improvement").textContent =
+        result.improvement != null
+            ? result.improvement + "%"
+            : "--";
+}
+
+function updateStationStatus(result) {
+    const status = document.getElementById("stationStatus");
+
+    if (!status) return;
+
+    if (result.traffic === "مرتفع") {
+        status.textContent = "HIGH";
+        status.style.color = "#ef4444";
+    } else if (result.traffic === "متوسط") {
+        status.textContent = "MODERATE";
+        status.style.color = "#eab308";
+    } else {
+        status.textContent = "NORMAL";
+        status.style.color = "#4ade80";
+    }
+}
 
     const activePumps = new Set(
         result.allocation.map(item => item.pump)
