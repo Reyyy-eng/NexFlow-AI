@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import random
 import os
 
 try:
@@ -11,54 +10,25 @@ except ImportError:
     HAS_JOBLIB = False
 
 
-def fallback_logic(cars: int, speed: float):
-    is_heavy = cars > 50
-    traffic = "Heavy" if is_heavy else "Normal"
-    probability = 0.85 if is_heavy else 0.30
-    
-    return {
-        "traffic": traffic,
-        "probability": probability,
-        "recommendation": "Reroute traffic to secondary lanes" if is_heavy else "Maintain current flow",
-        "before": 15,
-        "after": 8 if is_heavy else 14,
-        "improvement": "46.7%" if is_heavy else "6.7%",
-        "allocation": [
-            {"lane": "Lane A", "status": "Open"},
-            {"lane": "Lane B", "status": "Optimized"}
-        ]
-    }
-
-
 app = FastAPI(
     title="NexFlow Engine",
     description="Smart Traffic Optimization System",
-    version="1.2.0"
+    version="1.3.0"
 )
 
-origins = [
-    "https://reyyy-eng.github.io",
-    "http://localhost",
-    "http://localhost:3000",
-    "*"
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=[
+        "https://reyyy-eng.github.io",
+        "http://localhost",
+        "http://localhost:3000",
+        "*"
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-model = None
-MODEL_FILE = "traffic_model.pkl"
-
-if HAS_JOBLIB and os.path.exists(MODEL_FILE):
-    try:
-        model = joblib.load(MODEL_FILE)
-    except Exception as e:
-        print(f"Error loading model: {e}")
 
 
 class TrafficInput(BaseModel):
@@ -66,29 +36,69 @@ class TrafficInput(BaseModel):
     speed: float
 
 
+model = None
+MODEL_FILE = "traffic_model.pkl"
+
+if HAS_JOBLIB and os.path.exists(MODEL_FILE):
+    try:
+        model = joblib.load(MODEL_FILE)
+    except Exception:
+        model = None
+
+
+def get_traffic_status(cars: int, speed: float):
+    if cars > 50 or speed < 30:
+        return "Heavy", 95.0, "Activate Dynamic Lane Control & Pump Queue Redirection"
+
+    elif cars > 20 or speed < 60:
+        return "Moderate", 89.0, "Optimize Station Signal Timings & Queue Allocation"
+
+    else:
+        return "Normal", 96.0, "Standard Operations - Traffic Flow Normal"
+
+
+def create_allocation(cars: int):
+    return [
+        {
+            "vehicle": f"Vehicle {i + 1:02d}",
+            "pump": f"P{(i % 8) + 1:02d}"
+        }
+        for i in range(min(cars, 12))
+    ]
+
+
 @app.get("/")
 def read_root():
-    return {"message": "NexFlow AI Engine Online"}
+    return {
+        "message": "NexFlow AI Engine Online",
+        "status": "Online"
+    }
 
 
 @app.post("/api/v1/predict")
 def predict_traffic(input_data: TrafficInput):
-    if model is not None:
-        try:
-            prediction = model.predict([[input_data.cars, input_data.speed]])
-            return {
-                "traffic": str(prediction[0]),
-                "probability": 0.88,
-                "recommendation": "Optimize signal timing",
-                "before": 15,
-                "after": 9,
-                "improvement": "40.0%",
-                "allocation": [
-                    {"lane": "Lane A", "status": "Open"},
-                    {"lane": "Lane B", "status": "Optimized"}
-                ]
-            }
-        except Exception:
-            return fallback_logic(input_data.cars, input_data.speed)
-    else:
-        return fallback_logic(input_data.cars, input_data.speed)
+
+    cars = input_data.cars
+    speed = input_data.speed
+
+    traffic, probability, recommendation = get_traffic_status(
+        cars,
+        speed
+    )
+
+    before = 4.0
+    after = 2.0
+    improvement = round(
+        ((before - after) / before) * 100,
+        1
+    )
+
+    return {
+        "traffic": traffic,
+        "probability": probability,
+        "recommendation": recommendation,
+        "before": before,
+        "after": after,
+        "improvement": improvement,
+        "allocation": create_allocation(cars)
+    }
