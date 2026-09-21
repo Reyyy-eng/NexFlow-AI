@@ -10,6 +10,11 @@ try:
 except ImportError:
     HAS_JOBLIB = False
 
+def fallback_logic(cars: int, speed: float):
+    traffic = "Heavy" if cars > 50 else "Normal"
+    probability = 0.85 if cars > 50 else 0.30
+    return traffic, probability
+
 app = FastAPI(
     title="NexFlow Engine",
     description="Smart Traffic Optimization System",
