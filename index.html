@@ -859,8 +859,7 @@ updateStationStatus(result);
                 "high"
             );
 
-            if (result.traffic === "مرتفع") {
-
+            if (result.traffic === "Heavy") {
                 box.classList.add("high");
 
                 title.textContent =
@@ -872,8 +871,7 @@ updateStationStatus(result);
                 level.textContent =
                     "High Traffic";
 
-            } else if (result.traffic === "متوسط") {
-
+          } else if (result.traffic === "Moderate") {
                 box.classList.add("medium");
 
                 title.textContent =
@@ -1002,7 +1000,22 @@ updateStationStatus(result);
     if (!result.allocation) {
         return;
     }
-     function updateResults(result) {
+     
+
+    const activePumps = new Set(
+        result.allocation.map(item => item.pump)
+    ).size;
+
+    const totalPumps = document.querySelectorAll(".station .pump").length;
+    const availablePumps = totalPumps - activePumps;
+
+    document.getElementById("pumpsActive").textContent =
+        activePumps + " / " + totalPumps;
+
+    document.getElementById("pumpsAvailable").textContent =
+        availablePumps + " pumps available";
+}  </script>
+function updateResults(result) {
     document.getElementById("before").textContent =
         result.before ?? "--";
 
@@ -1031,22 +1044,6 @@ function updateStationStatus(result) {
         status.style.color = "#4ade80";
     }
 }
-
-
-    const activePumps = new Set(
-        result.allocation.map(item => item.pump)
-    ).size;
-
-    const totalPumps = document.querySelectorAll(".station .pump").length;
-    const availablePumps = totalPumps - activePumps;
-
-    document.getElementById("pumpsActive").textContent =
-        activePumps + " / " + totalPumps;
-
-    document.getElementById("pumpsAvailable").textContent =
-        availablePumps + " pumps available";
-}  </script>
-
 </body>
 
 </html>
